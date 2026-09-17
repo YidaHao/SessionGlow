@@ -17,7 +17,7 @@ Use **Ambient status lights for your OpenCode agents.** in the English README, A
 - [x] Per-user plugin registration, safe migration/removal and explicit upgrade/uninstall instructions.
 - [x] `CONTRIBUTING.md`, bilingual issue forms and three scoped roadmap descriptions.
 - [x] CI tests, lint, package install/reinstall/removal, and tagged-release publication workflow.
-- [ ] Remote CI passing, roadmap issues created and release assets verified (fill in after publication).
+- [x] Remote CI passing, roadmap issues created and release assets verified.
 
 AppImage is a **deferred recommendation**, not a v0.1.0 asset. The roadmap issue specifies portable runtime, licensing and plugin lifecycle acceptance criteria. Wayland/KDE remain untested, not “testing” or “supported”.
 
@@ -45,4 +45,23 @@ CI runs on `main`, PRs and tags. A matching `v0.1.0` tag triggers tests, builds 
 
 The first tagged release creates three actionable roadmap issues using `scripts/publish_roadmap.py`: Wayland/KDE validation, AppImage packaging and English UI. They are not speculative feature promises.
 
-Release notes: [v0.1.0](releases/v0.1.0.md). Track online verification below; leave items open until they are actually checked.
+Release notes: [v0.1.0](releases/v0.1.0.md).
+
+## Verified publication
+
+- Release commit: `bb241cd`; annotated tag: `v0.1.0`.
+- [Main-branch CI](https://github.com/YidaHao/SessionGlow/actions/runs/35243765964): success.
+- [Tag CI and release publication](https://github.com/YidaHao/SessionGlow/actions/runs/35244137025): success.
+- [Published v0.1.0](https://github.com/YidaHao/SessionGlow/releases/tag/v0.1.0): notes, `.deb`, `SHA256SUMS` and source archives.
+- [Wayland/KDE roadmap #1](https://github.com/YidaHao/SessionGlow/issues/1), [AppImage #2](https://github.com/YidaHao/SessionGlow/issues/2), [English UI #3](https://github.com/YidaHao/SessionGlow/issues/3). All carry `help wanted`; #3 also carries `good first issue`.
+- 18 Python tests, Node event tests, lint and desktop-entry validation passed.
+- An isolated Ubuntu 22.04 container passed install, real lower-version upgrade, render, first-run registration, non-root plugin registration, reinstall and removal.
+- Two local builds produced identical bytes. The package downloaded back from GitHub passed its released checksum and matched the local artifact byte-for-byte.
+
+Published package SHA-256:
+
+```text
+4ad3e27de49ee0f17ab1959e7cf836426a71324d99c052f11fd2a820247c2085  sessionglow_0.1.0_amd64.deb
+```
+
+**Remaining stage-one blockers:** online About and Topics changes require authenticated repository-management access; Social Preview requires the owner to upload the prepared image in Settings. These items are intentionally not marked complete. The optional AppImage recommendation is tracked as #2. No Soft Launch or public promotion has been performed.

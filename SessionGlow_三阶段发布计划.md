@@ -486,12 +486,12 @@ Release 中至少包含：
 - [ ] AppImage（建议）
 - [x] Compatibility Matrix
 - [x] Upgrade / Uninstall
-- [ ] CI 通过
+- [x] CI 通过
 - [x] CONTRIBUTING.md
-- [ ] Roadmap Issues
-- [ ] v0.1.0 Release
+- [x] Roadmap Issues
+- [x] v0.1.0 Release
 
-执行记录与可验证链接见 [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)。AppImage 建议项暂缓；Social Preview 图已生成，线上上传需独立确认。远端 CI、Issues 和 Release 在实际验证后勾选。
+执行记录与可验证链接见 [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)。[v0.1.0 已发布](https://github.com/YidaHao/SessionGlow/releases/tag/v0.1.0)，CI 与 Release 安装包校验均通过；Roadmap #1–#3 已创建。AppImage 建议项暂缓。当前仍缺 GitHub About、Topics 的管理授权，以及将已生成的 Social Preview 图上传到仓库设置，因此第一阶段尚未全项关闭。
 
 ---
 
