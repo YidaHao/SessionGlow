@@ -1,91 +1,124 @@
+<div align="center">
+
+<img src="icon.svg" width="76" height="76" alt="SessionGlow 标志" />
+
 # SessionGlow
 
-把 OpenCode 的会话状态放进一个安静的悬浮面板。每个主会话对应一根灯管，所有光效限制在面板内部。
+**让每个 OpenCode 会话，都有一盏状态灯。**
 
-完整指南：[安装与 OpenCode / OpenChamber 接入](docs/INSTALL.md) · [日常使用、设置与问题排查](docs/USAGE.md)。
+一个放在桌面角落的悬浮面板。<br />
+用交错电流、漂浮粒子和流动液体，呈现 Agent 的真实工作状态。
 
-针对 Ubuntu 22.04.5 / GNOME 42.9 / X11 制作，使用系统 Python 3.10 + PyQt5。Python 后端和 OpenCode 插件均无其它第三方依赖。原 WindowRag Ubuntu 实现已单独保存在 `WindowRag` 仓库的 `feat/ubuntu-x11` 分支，提交 `d59bfb3`。
+<p>
+  <img src="https://img.shields.io/badge/Ubuntu-22.04%20%7C%20X11-E95420?style=flat-square" alt="已验证 Ubuntu 22.04 / X11" />
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10 及以上" />
+  <img src="https://img.shields.io/badge/UI-PyQt5-41CD52?style=flat-square" alt="PyQt5 桌面界面" />
+  <img src="https://img.shields.io/badge/OpenCode-真实事件接入-55B6FF?style=flat-square" alt="OpenCode 真实事件接入" />
+</p>
 
-## 打开、隐藏、退出
+<p>
+  <a href="#动效预览">动效预览</a> ·
+  <a href="#快速开始">快速开始</a> ·
+  <a href="docs/INSTALL.md">安装与接入</a> ·
+  <a href="docs/USAGE.md">使用与排查</a>
+</p>
+
+</div>
+
+---
+
+## 动效预览
+
+<p align="center">
+  <img src="docs/assets/sessionglow-demo.gif" width="420" alt="SessionGlow 动效：蓝色交叉电流、红色静止电流、绿色流动液体、黄色抖动电流；第五根灯管循环切换状态" />
+</p>
+
+<p align="center">
+  <sub>实际程序渲染 · 合成演示会话 · 第五根灯管每 5 秒切换状态</sub><br />
+  <a href="docs/assets/sessionglow-demo.webm">查看 24 fps 高清动效</a>
+</p>
+
+### 四种颜色，四种节奏
+
+| 状态 | 灯管里的变化 | 你需要知道的事 |
+| :--- | :--- | :--- |
+| 🔵 **进行中** | 五股电流舒缓交错，细小粒子沿电流和空腔自由漂浮 | Agent 正在工作，或正在自动重试 |
+| 🔴 **任务失败** | 电流逐渐收成直线，粒子停住，只留下轻微抖动 | 任务已终止，需要查看失败原因 |
+| 🟢 **已完成** | 电流和粒子渐隐，绿色液体充满灯管并缓慢流动 | 这一轮任务已经结束 |
+| 🟡 **待确认** | 保持饱满的电流波幅，叠加更明显、不规则的抖动 | 有授权请求或问题需要你回应 |
+
+每次切换经过约 **0.8 秒的平滑过渡**。颜色、波幅、粒子运动和液体填充一起变化；连续收到新状态时，动画从当前画面继续。
+
+## 放在角落，也能看清进展
+
+| | |
+| :--- | :--- |
+| **一根灯管，一个主会话**<br />子 Agent 的活动归入主会话，等待确认也会一起提示。 | **最近任务，稳定排列**<br />默认显示 5 个，可配置为 1–12 个；工具调用和心跳不打乱顺序。 |
+| **终端与 OpenChamber 都能接入**<br />汇总本机已加载插件的多个 OpenCode 服务和项目。 | **可拖动的悬浮面板**<br />支持置顶、位置记忆、隐藏到托盘，以及透明度、帧率和动效强度调节。 |
+| **真实事件驱动**<br />直接响应任务、失败、权限和提问事件，不以 CPU 占用推测任务状态。 | **轻量的本地记录**<br />保留近期会话摘要；断线时标明连接中断，重新打开后自动恢复连接。 |
+
+所有光效都限制在面板内部。授权和回答仍在 OpenCode / OpenChamber 中完成。
+
+## 快速开始
+
+当前主要适配 **Ubuntu 22.04.5 + GNOME 42.9 + X11**，已在 **OpenCode 1.18.31** 上验证。其他桌面环境、Wayland 置顶策略与混合 DPI 尚未验证。
+
+### 1. 获取并安装
+
+```bash
+git clone https://github.com/YidaHao/SessionGlow.git
+cd SessionGlow
+
+sudo apt install python3-pyqt5
+/usr/bin/python3 install.py
+```
+
+安装器为当前用户添加 OpenCode 插件和 Ubuntu 应用菜单入口，保留已有 `opencode.json`。启动器使用系统 Python，无需创建虚拟环境。
+
+### 2. 打开面板
 
 ```bash
 ./run.sh
 ```
 
-也可以在 Ubuntu 应用菜单搜索 **SessionGlow**（先运行下面的安装命令）。面板标题栏可拖动；右上角 `−` 隐藏到托盘，`···` 打开菜单。托盘支持显示/隐藏、置顶、数量、外观设置和退出；终端运行时也可以 Ctrl+C 退出。
+也可以在应用菜单搜索 **SessionGlow**。
 
-本机已安装 PyQt5，其他 Ubuntu 机器可执行 `sudo apt install python3-pyqt5`。
-
-预览四种状态与连续切换，不需要 OpenCode：
+想先看看全部动效？
 
 ```bash
 ./run.sh --demo
 ```
 
-演示模式用明确标注的合成数据，不接收真实会话、不写配置或会话历史；第五根灯管每 5 秒切换一次状态。
+演示模式不依赖 OpenCode，会同时展示四种状态和连续切换效果。
 
-## 灯管状态
+### 3. 重启实际使用的 OpenCode
 
-| 状态 | 颜色 | 效果 |
-| --- | --- | --- |
-| 进行中 | 蓝色 | 五股加粗电流舒缓交叉流动，粒子沿电流和空腔漂浮 |
-| 任务失败 | 红色 | 收敛为近乎水平的电流，粒子停住，仅有细微抖动 |
-| 已完成 | 绿色 | 电流与粒子消失，管腔充满缓慢流动的绿色液体 |
-| 待确认 | 黄色 | 五股加粗交叉电流与空腔粒子，与蓝色近似的波幅，加上更不规则的快速抖动 |
+插件在 OpenCode 启动时加载。安装后，退出并重新打开你使用的终端或服务。
 
-所有状态变化经过 0.8 秒平滑过渡，粒子位置与动画相位保持连续，中途切换从当前画面继续。绿色的内部光带表现液体折射，不是电流或粒子。
+| 你的使用方式 | 接入方法 |
+| :--- | :--- |
+| 直接在终端使用 OpenCode | 在原项目目录执行 `opencode -c`，继续最近的会话 |
+| 独立 `opencode serve` 服务 | 等待任务结束，按原端口和认证配置重新启动该服务 |
+| OpenChamber 自动管理后台 | 等待任务结束，运行 `openchamber restart --port 3000`；替换为实际网页端口 |
+| OpenChamber 连接外部 OpenCode | 重启对应的外部 OpenCode 服务；刷新网页不会重载服务插件 |
 
-蓝色和黄色状态各有 19 颗沿电流运动的粒子，以及 38 颗在管腔内独立漂浮的细小粒子。转为失败时，附加电流和空腔粒子逐渐淡出，沿线粒子回到主电流并停止；转为完成时一起渐隐为绿色液体。
+**OpenChamber 的后台不一定是 4096。** 它可能自动启动一个动态端口的服务。完整步骤见 [安装与接入指南](docs/INSTALL.md)。
 
-没有可靠任务结果时使用灰色待机灯。连接丢失时灯管变暗并标明“连接中断 · 上次状态”，保留上次的任务状态；不会将断线当作完成。用户主动取消任务显示红色并标明“已取消”；普通工具失败后继续执行或重试仍显示蓝色。
+连接后，在 OpenCode 发起一个任务，相应灯管就会亮起。
 
-## OpenCode 接入
+## 日常使用
 
-安装全局插件入口和应用启动项：
+- **拖动标题栏**移动面板，位置会自动保存。
+- **右上角 `−`**隐藏到托盘，后台继续接收状态。
+- **右上角 `···`**打开菜单，调整会话数量、置顶和外观。
+- **托盘菜单 → 退出 SessionGlow**关闭程序，不中断 Agent 任务。
 
-```bash
-/usr/bin/python3 install.py
-```
+完成或失败的会话会留在列表中；旧会话被更新的任务挤出后，可增大显示数量。灰色表示尚无可靠结果；连接丢失会标明“连接中断 · 上次状态”，不会伪装成任务完成。
 
-从本机之前的 WindowRag 接入切换：
+<details>
+<summary><strong>配置文件与常用选项</strong></summary>
 
-```bash
-/usr/bin/python3 install.py --replace-windowrag
-```
-
-安装器会把旧的 `~/.config/opencode/plugins/windowrag.js` 保存为 `.js.disabled`，写入新的 `sessionglow.js`。它不改写 `opencode.json`，也不会修改其它插件。入口引用本仓库文件，移动仓库后应更新入口路径。
-
-**安装或更新插件后，退出并重启 OpenCode。** 在原来的项目目录执行 `opencode -c` 可继续最近的会话；使用独立 `opencode serve` 的客户端，需要重启对应服务。SessionGlow 本身可以一直开着。
-
-插件使用实际 `session.status`、`session.error`、授权/提问和消息元数据事件。程序没有 CPU 兜底，不凭进程负载推测任务。只传输会话 ID、父子关系、标题、项目目录、状态和时间，不传输提示词、回答正文或工具参数。
-
-面板底部显示连接数量。插件每 5 秒发送当前快照，面板关闭不阻塞 OpenCode；重新打开面板后会自动恢复连接。20 秒没有心跳时标记断线。
-
-默认端口 `127.0.0.1:8790`，仅监听本机：
-
-```bash
-curl -s http://127.0.0.1:8790/health
-```
-
-接口显示连接数、当前显示的会话和状态。自定义端口时两端必须一致：`./run.sh --port 8791` 与 `SESSIONGLOW_PORT=8791 opencode`。
-
-`sources` 还提供实际 OpenCode 服务地址、PID、项目目录与会话数。OpenChamber 可能自动启动动态端口的服务，并不一定连接 4096；插件必须在实际服务中加载。完整接入步骤见 [安装文档](docs/INSTALL.md)。`connections` 是项目插件实例数，一个服务可以产生多个连接。
-
-## 会话列表规则
-
-- 只列主会话。子 Agent 活动和需要确认的提示归到所属主会话，不占面板位置。
-- 默认 5 个，按最近发起任务时间降序排列。工具调用、心跳和任务完成不会把老任务顶上来。
-- 子任务仍活跃时，主会话不会提前变绿；任一子任务等待用户操作时，主灯管变黄。
-- 主任务的终止错误保留为红色，紧随其后的 idle 事件不会将它覆盖成绿色。
-- 子任务失败可能被主任务恢复，主会话的最终成功/失败以主任务结果为准。
-- 完成和失败的会话留在列表中，新任务发起时才改变状态；同名会话由 ID 区分。
-- 全局插件汇总已加载它的 OpenCode 实例；不是只监控当前工程。面板行下方显示项目名，悬停可查看完整标题、路径和会话 ID。
-
-面板保存有限的本地会话摘要。插件启动时从当前项目最近的最多 32 个会话、每会话最近 12 条消息的元数据恢复近期状态，再结合实时状态校准；实时事件不等待历史回填，迟到的历史结果不会覆盖实时状态。不会读取并保存整个聊天记录。很久以前的任务或最后用户消息超出这一小段历史时，已有面板缓存优先保留排序时间，新安装首次回填可能不完整；此后的新任务时间会准确记录。
-
-## 配置
-
-`~/.config/sessionglow/config.json`：
+外观设置可在菜单中直接修改，也可编辑 `~/.config/sessionglow/config.json`：
 
 ```json
 {
@@ -99,29 +132,65 @@ curl -s http://127.0.0.1:8790/health
 }
 ```
 
-菜单“外观设置”可调数量（1–12）、帧率、不透明度和动效强度，立即生效并保存。拖动后记录位置。状态缓存为 `~/.local/state/sessionglow/sessions.json`，只保留最多 512 个会话摘要。缺少配置文件时使用默认值。`--config` / `--cache` 可覆盖路径。
+手工编辑配置后重新打开面板。降低帧率可以减少绘制负载，降低动效强度可以减少画面干扰；隐藏时停止绘图。
 
-默认不配置开机自启。关闭窗口仅隐藏面板，可通过托盘退出整个程序。隐藏时停止绘图，事件监控仍继续。当前主要验证平台为 GNOME/X11；混合 DPI、不同桌面的托盘和 Wayland 置顶策略尚未验证。
+```bash
+# 使用指定配置
+./run.sh --config /path/to/config.json
 
-## 开发与验证
+# 演示 15 秒后退出
+./run.sh --demo --quit-after 15
+
+# 导出合成预览图
+./run.sh --render /tmp/sessionglow.png
+```
+
+</details>
+
+<details>
+<summary><strong>连上了吗？查看实际服务来源</strong></summary>
+
+```bash
+curl -s http://127.0.0.1:8790/health | /usr/bin/python3 -m json.tool
+```
+
+`sources` 显示实际 OpenCode 服务地址、PID 和项目目录，`sessions` 显示面板上的会话。一个服务可初始化多个项目，因此 `connections` 不等于服务数或会话数。
+
+如果终端会话可见，而 OpenChamber 会话不可见，先核对后台端口和插件加载位置，再看 [连接问题排查](docs/USAGE.md#排查终端会话可见openchamber-会话不可见)。
+
+</details>
+
+## 本地接入，按需运行
+
+插件通过本机 `127.0.0.1:8790` 发送会话标题、目录、状态和时间等元数据。**不会向面板传输提示词正文、回答正文、工具参数或服务密码。** 首次启动会通过 OpenCode API 回填有限的近期历史，用于恢复会话摘要；实时任务不等待历史加载。
+
+会话摘要保存在 `~/.local/state/sessionglow/sessions.json`。面板关闭时不会阻塞 OpenCode，重新打开后通过心跳恢复；默认不设置开机自启。
+
+## 文档与开发
+
+| 文档 | 内容 |
+| :--- | :--- |
+| [安装与接入](docs/INSTALL.md) | 安装、升级、卸载、终端与服务接入、OpenChamber 两种模式 |
+| [使用与排查](docs/USAGE.md) | 灯管状态、会话排序、外观设置、连接诊断 |
+| [动效素材生成](docs/assets/README.md) | 首页 GIF 与高清演示的生成方式 |
+
+运行自动测试：
 
 ```bash
 /usr/bin/python3 -m unittest discover -s tests -p 'test_*.py' -v
 node --test tests/plugin.test.mjs
-./run.sh --render /tmp/sessionglow.png
-./run.sh --demo --quit-after 10
 ```
 
-`--render` 离屏绘制合成会话，不截图用户桌面。真实 OpenCode 集成测试要求已经安装插件并启动 SessionGlow：
+安装插件并启动面板后，可验证真实 OpenCode 多会话行为：
 
 ```bash
 /usr/bin/python3 tests/live_opencode.py
 ```
 
-它启动独立临时 OpenCode 服务，创建两个主会话和一个子会话，通过数秒的本地 shell 命令验证插件加载、独立状态、子会话归属、完成保留和排序稳定，随后清理测试会话。不会请求模型或消耗 token。失败、等待确认及连续状态切换另由事件与动画测试覆盖。
+它通过临时会话和本地短命令检查主子会话归属、排序及状态变化，不请求模型。桌面交互测试和更多命令见 [使用文档](docs/USAGE.md) 与 [测试目录](tests)。
 
-桌面交互测试：`PYTHONPATH=. /usr/bin/python3 tests/smoke_desktop.py`，会短暂操作自己的测试面板并恢复鼠标与焦点。合成动效视频导出：`PYTHONPATH=. /usr/bin/python3 tests/render_demo.py /tmp/sessionglow.webm`（需要 ffmpeg）。
+---
 
-空列表不持续重绘，隐藏时只保留事件接收。五股电流增加了绘制工作，可通过外观设置降低帧率或动效强度。
-
-源码分工：`plugin/sessionglow.mjs` 收集真实事件；`model.py` 管理会话和主子关系；`server.py` 接收本机快照；`motion.py` 计算连续动效参数；`panel.py` 绘制窗口；`__main__.py` 负责启动、配置与持久化。
+<p align="center">
+  <sub>一眼看见进展，然后继续手头的事。</sub>
+</p>
