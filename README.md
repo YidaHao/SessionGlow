@@ -4,6 +4,8 @@
 
 # SessionGlow
 
+<p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
+
 **让每个 OpenCode 会话，都有一盏状态灯。**
 
 一个放在桌面角落的悬浮面板。<br />
