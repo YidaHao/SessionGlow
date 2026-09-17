@@ -11,6 +11,8 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QApplication
 
+from . import __version__
+from .integration import install_plugin, uninstall_plugin
 from .model import SessionStore
 from .panel import Panel
 from .server import Server
@@ -50,6 +52,11 @@ def demo_rows(elapsed=0):
 
 def main():
     parser = argparse.ArgumentParser(description="SessionGlow · floating OpenCode session lights")
+    parser.add_argument("--version", action="version", version=f"SessionGlow {__version__}")
+    integration = parser.add_mutually_exclusive_group()
+    integration.add_argument("--install-plugin", action="store_true", help="Register the plugin for the current user and exit")
+    integration.add_argument("--uninstall-plugin", action="store_true", help="Remove the current user's managed plugin and exit")
+    parser.add_argument("--no-plugin-install", action="store_true", help="Skip packaged first-run plugin registration")
     parser.add_argument("--demo", action="store_true", help="Show four states and a continuously transitioning fifth tube")
     parser.add_argument("--port", type=int, help="Loopback event receiver port (default 8790)")
     parser.add_argument("--config", type=Path, default=Path.home() / ".config/sessionglow/config.json")
@@ -57,6 +64,14 @@ def main():
     parser.add_argument("--render", type=Path, help="Render only synthetic demo data to a PNG, then exit")
     parser.add_argument("--quit-after", type=float, help="Exit automatically after N seconds")
     args = parser.parse_args()
+    root = Path(__file__).resolve().parents[1]
+    if args.install_plugin or args.uninstall_plugin:
+        try:
+            target, changed = uninstall_plugin() if args.uninstall_plugin else install_plugin(root)
+        except (ValueError, OSError) as exc:
+            parser.exit(1, f"SessionGlow: {exc}\n")
+        print(f"{'Updated' if changed else 'No change'}: {target}. Restart OpenCode to apply.")
+        return 0
     if args.render:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
     try:
@@ -101,6 +116,15 @@ def main():
     except OSError as exc:
         panel.tray.hide()
         parser.exit(1, f"SessionGlow: {exc}. An instance may already be running.\n")
+    if (root / "PACKAGED").exists() and not args.demo and not args.no_plugin_install:
+        try:
+            target, changed = install_plugin(root)
+            if changed:
+                panel.tray.showMessage("SessionGlow", "OpenCode plugin installed. Restart OpenCode to connect.")
+                print(f"SessionGlow: installed {target}; restart OpenCode to connect", flush=True)
+        except (ValueError, OSError) as exc:
+            panel.tray.showMessage("SessionGlow", str(exc))
+            print(f"SessionGlow: {exc}", file=sys.stderr)
     store = SessionStore(args.cache) if not args.demo else None
     start = time.monotonic()
     last_save = start

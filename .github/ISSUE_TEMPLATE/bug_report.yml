@@ -1,0 +1,33 @@
+name: Bug report / 问题反馈
+description: Report installation, rendering or session-state problems.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please omit prompt contents, credentials and private project names. 中文或 English 均可。
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: Include distribution, desktop, X11/Wayland, package version, OpenCode version and terminal/serve/OpenChamber mode.
+      placeholder: Ubuntu 22.04, GNOME 42, X11; SessionGlow 0.1.0 (.deb); OpenCode 1.18.31; OpenChamber
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: What task/state transition or install command triggers the problem?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior / 预期与实际
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics / 诊断信息
+      description: Relevant errors or redacted /health output. Do not paste tokens, passwords or full conversation logs.

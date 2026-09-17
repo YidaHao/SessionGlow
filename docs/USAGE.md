@@ -7,6 +7,10 @@
 从 Ubuntu 应用菜单搜索 **SessionGlow**，或执行：
 
 ```bash
+# Debian 软件包安装
+sessionglow
+
+# 源码安装
 ~/Workspace/SessionGlow/run.sh
 ```
 
@@ -67,6 +71,7 @@
 ## 演示与预览
 
 ```bash
+# 软件包安装者用 sessionglow 替换下面的 ~/Workspace/SessionGlow/run.sh
 # 预览全部状态，第五根灯管每 5 秒切换一次
 ~/Workspace/SessionGlow/run.sh --demo
 
@@ -129,5 +134,7 @@
 | `~/.local/state/sessionglow/sessions.json` | 最多 512 个会话摘要 |
 | `~/.config/opencode/plugins/sessionglow.js` | 插件安装入口 |
 | `~/.local/share/applications/sessionglow.desktop` | 应用菜单入口 |
+
+软件包提供的系统启动项位于 `/usr/share/applications/sessionglow.desktop`，运行文件位于 `/usr/share/sessionglow`。配置 `XDG_CONFIG_HOME` 时，插件入口位于该目录的 `opencode/plugins/sessionglow.js`。升级和卸载的区别见 [安装文档](INSTALL.md)。
 
 插件发送标题、项目路径、会话/父会话 ID、状态和时间等元数据，以及用于排查的服务地址与 PID。不会向面板传输提示词正文、回答正文、工具参数或服务密码。

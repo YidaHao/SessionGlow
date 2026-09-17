@@ -1,24 +1,29 @@
-# 首页动效素材
+# Release media / 发布素材
 
-素材由 SessionGlow 本身离屏绘制，使用程序内置的中文演示会话，不包含真实用户桌面或聊天内容。
+The landing-page media uses SessionGlow's actual tube renderer with synthetic English session titles. No user desktop, conversation or project information is captured. English media labels are presentation text; v0.1.0's normal UI is still Chinese.
 
-| 文件 | 用途 |
+| File | Purpose |
 | --- | --- |
-| `sessionglow-demo.gif` | README 内直接播放的动效，420 × 580，12 fps，20 秒循环 |
-| `sessionglow-demo.webm` | 高清演示，420 × 580，24 fps，20 秒 |
+| `sessionglow-demo.gif` | 12-second looping README demo, 420 × 488, 12 fps |
+| `sessionglow-demo.webm` | Same scenario at 24 fps |
+| `social-preview.png` | 1280 × 640 GitHub Social Preview image |
 
-四根灯管分别展示运行、失败、完成和待确认；第五根每 5 秒切换一次状态。
+The first row runs, requests permission, shows a simulated “Approved” caption, resumes and completes. Other rows show parallel work, completion and failure. SessionGlow does not approve permissions; this is a staged illustration of the lifecycle.
 
-## 重新生成
+中文：首行依次演示运行、等待授权、模拟用户批准、恢复运行和完成，其余行显示并行任务与不同结果。素材不含真实聊天或桌面内容。
 
-需要系统 PyQt5 和 ffmpeg。在仓库根目录运行：
+## Regenerate
+
+Install system PyQt5 and ffmpeg, then run at the repository root:
 
 ```bash
-PYTHONPATH=. /usr/bin/python3 tests/render_demo.py docs/assets/sessionglow-demo.webm
-
-ffmpeg -y -i docs/assets/sessionglow-demo.webm \
-  -filter_complex '[0:v]fps=12,split[frames][colors];[colors]palettegen=max_colors=128:stats_mode=diff[palette];[frames][palette]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle' \
-  -loop 0 docs/assets/sessionglow-demo.gif
+/usr/bin/python3 scripts/render_release_media.py
 ```
 
-GIF 用于 GitHub README 内嵌播放，WebM 保留更高帧率。重新生成后同时检查四种稳定状态和第五根灯管的过渡。
+The longer original demo is still available through `./run.sh --demo` and `tests/render_demo.py`.
+
+## Set the Social Preview
+
+In GitHub: repository **Settings → General → Social preview → Edit → Upload an image**. Select `social-preview.png`. GitHub currently requires a browser upload for this setting; committing the file does not activate it automatically.
+
+See [release checklist](../RELEASE_CHECKLIST.md) for the repository description, topics and verification status.

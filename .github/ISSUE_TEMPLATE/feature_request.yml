@@ -1,0 +1,24 @@
+name: Feature or compatibility request / 功能与兼容性建议
+description: Explain a concrete use case or volunteer a platform test.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Use case / 使用场景
+      description: What is hard to observe today? For platform support, include your OS and desktop/session type.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome / 期望效果
+    validations:
+      required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: How can you help? / 参与方式
+      options:
+        - label: I can test on my machine / 我可以协助本机测试
+        - label: I would like to contribute an implementation / 我愿意提交实现

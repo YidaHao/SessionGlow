@@ -1,10 +1,72 @@
-# 安装与接入
+# Installation / 安装与接入
+
+## Ubuntu package (recommended)
+
+Download `sessionglow_0.1.0_amd64.deb` and `SHA256SUMS` from the [v0.1.0 release](https://github.com/YidaHao/SessionGlow/releases/tag/v0.1.0):
+
+```bash
+sha256sum -c SHA256SUMS
+sudo apt install ./sessionglow_0.1.0_amd64.deb
+sessionglow
+```
+
+The package installs `/usr/bin/sessionglow`, an application-menu entry, and its runtime at `/usr/share/sessionglow`. Apt resolves the system Python/PyQt5 dependencies. The first normal launch registers a plugin entry for the current user; `--demo`, `--render` and `--no-plugin-install` do not register it. **Restart your actual OpenCode terminal or server after installation or upgrade.**
+
+Registration can also be done explicitly, without opening a window:
+
+```bash
+sessionglow --install-plugin
+```
+
+The user-owned entry is `~/.config/opencode/plugins/sessionglow.js`, or `$XDG_CONFIG_HOME/opencode/plugins/sessionglow.js` when configured. Only entries managed by SessionGlow are replaced. The package never changes `opencode.json`, scans other users' home directories or enables autostart.
+
+### Upgrade / uninstall
+
+Close the panel, then install the new release:
+
+```bash
+sudo apt install ./sessionglow_X.Y.Z_amd64.deb
+sessionglow
+```
+
+Restart the actual OpenCode process to reload plugin code. Before uninstalling:
+
+```bash
+sessionglow --uninstall-plugin
+sudo apt remove sessionglow
+```
+
+Restart OpenCode. Your settings and history remain at `~/.config/sessionglow/` and `~/.local/state/sessionglow/`. If the package was removed first, the managed plugin safely returns no hooks while its source is missing; remove the remaining `sessionglow.js` entry manually. `apt purge` does not delete user-owned settings either.
+
+### Migrate from source
+
+Close the old panel and remove its per-user launcher to avoid shadowing the system launcher:
+
+```bash
+# From the old source checkout, before opening the packaged app
+/usr/bin/python3 install.py --uninstall
+sessionglow
+```
+
+The packaged first launch recreates the plugin entry with its installed path. Session history and settings are shared. Do not alternate source and packaged normal launches unintentionally: whichever explicitly registers the plugin last determines its source path.
+
+### Supported release target
+
+v0.1.0 targets Ubuntu 22.04 / GNOME / X11 / amd64. AppImage is deferred pending portable runtime and lifecycle verification. Qt/Python are system dependencies and retain their respective licenses; MIT applies to SessionGlow's own code.
+
+## 推荐：通过 Debian 软件包安装
+
+从 Release 下载 `.deb` 和校验文件后，按上面的命令验证并用 `apt install` 安装。首次正常打开面板会自动为当前用户注册插件，然后需重启实际使用的 OpenCode。`sessionglow --demo` 可预览效果，`sessionglow --install-plugin` 可单独注册插件。
+
+升级使用 `sudo apt install ./sessionglow_X.Y.Z_amd64.deb`。卸载前运行 `sessionglow --uninstall-plugin`，再 `sudo apt remove sessionglow`。设置与历史会保留；先删包时，残留受管入口会安全返回空结果，可手动删除。源码迁移前运行原仓库的 `install.py --uninstall`，避免旧的用户启动项覆盖系统启动项。
+
+以下为源码安装与各类 OpenCode 接入的详细说明；软件包用户可直接跳到“根据 OpenCode 启动方式接入”。
 
 SessionGlow 分为两个部分：Ubuntu 桌面上的悬浮面板，以及运行在 OpenCode 进程中的插件。插件把真实会话状态发给面板；仅打开面板不会自动发现其他进程里的任务。
 
 已验证：Ubuntu 22.04.5、GNOME/X11、Python 3.10、PyQt5、OpenCode 1.18.31。无需编译或安装 npm 依赖。
 
-## 1. 准备依赖
+## 1. 源码安装：准备依赖
 
 ```bash
 sudo apt install python3-pyqt5
@@ -33,7 +95,7 @@ sudo apt install python3-pyqt5
 | `~/.config/opencode/plugins/sessionglow.js` | OpenCode 全局插件入口，引用仓库里的 `plugin/sessionglow.mjs` |
 | `~/.local/share/applications/sessionglow.desktop` | Ubuntu 应用菜单入口 |
 
-不需要 `sudo`。安装器保留现有 `opencode.json` 和其他插件。仓库移动后，需核对并更新插件入口中的绝对路径；安装器遇到内容不同的已有入口会提示，不会直接覆盖。
+不需要 `sudo`。安装器保留现有 `opencode.json` 和其他插件。仓库移动后，重新运行安装器可更新受管入口中的绝对路径；如果已有入口是用户自定义代码或符号链接，安装器会提示检查，不会直接覆盖。
 
 从此前的 WindowRag 切换时使用：
 
@@ -147,13 +209,12 @@ SESSIONGLOW_PORT=8791 opencode serve --hostname 127.0.0.1 --port 4096
 
 修改 `plugin/sessionglow.mjs`：完整重启对应的 OpenCode 服务或终端。仅重新访问项目或调用 `/instance/dispose` 不能保证清除模块缓存；不要用它代替插件升级后的完整重启。
 
-卸载时，先从面板菜单退出，然后移除本程序的两个安装入口：
+源码安装的用户先从面板菜单退出，再在原仓库运行：
 
 ```bash
-rm ~/.config/opencode/plugins/sessionglow.js
-rm ~/.local/share/applications/sessionglow.desktop
+/usr/bin/python3 install.py --uninstall
 ```
 
-再重启 OpenCode。仓库、`~/.config/sessionglow/` 配置和 `~/.local/state/sessionglow/` 历史摘要会保留，按需自行清理。程序默认不会设置开机自启。
+这会移除受管插件以及指向当前仓库的用户启动项；自定义入口不会被删除。再重启 OpenCode。仓库、`~/.config/sessionglow/` 配置和 `~/.local/state/sessionglow/` 历史摘要会保留，按需自行清理。程序默认不会设置开机自启。软件包用户请使用本文顶部的 `sessionglow --uninstall-plugin` 与 `apt remove` 流程。
 
 下一步：[日常使用与排查](USAGE.md)。

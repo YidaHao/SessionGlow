@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SessionGlow
+Comment=Ambient status lights for your OpenCode agents
+Comment[zh_CN]=OpenCode 会话状态灯
+Exec=sessionglow
+Icon=sessionglow
+Terminal=false
+Categories=Development;
+StartupWMClass=SessionGlow

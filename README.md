@@ -1,126 +1,141 @@
 <div align="center">
 
-<img src="icon.svg" width="76" height="76" alt="SessionGlow 标志" />
+<img src="icon.svg" width="68" height="68" alt="SessionGlow logo" />
 
 # SessionGlow
 
-<p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
+**Ambient status lights for your OpenCode agents.**
 
-**让每个 OpenCode 会话，都有一盏状态灯。**
+See which agents are working, done, failed, or waiting for you<br />
+without switching terminal tabs.
 
-一个放在桌面角落的悬浮面板。<br />
-用交错电流、漂浮粒子和流动液体，呈现 Agent 的真实工作状态。
+**English** · [简体中文](README.zh-CN.md)
 
-<p>
-  <img src="https://img.shields.io/badge/Ubuntu-22.04%20%7C%20X11-E95420?style=flat-square" alt="已验证 Ubuntu 22.04 / X11" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10 及以上" />
-  <img src="https://img.shields.io/badge/UI-PyQt5-41CD52?style=flat-square" alt="PyQt5 桌面界面" />
-  <img src="https://img.shields.io/badge/OpenCode-真实事件接入-55B6FF?style=flat-square" alt="OpenCode 真实事件接入" />
-</p>
+<img src="docs/assets/sessionglow-demo.gif" width="420" alt="Four session lights. A working session requests permission, receives confirmation, resumes work, and completes." />
 
-<p>
-  <a href="#动效预览">动效预览</a> ·
-  <a href="#快速开始">快速开始</a> ·
-  <a href="docs/INSTALL.md">安装与接入</a> ·
-  <a href="docs/USAGE.md">使用与排查</a>
-</p>
+🔵 Working　 🟡 Needs you　 🟢 Done　 🔴 Failed
+
+<sub>12-second synthetic scenario rendered by the app. “Approved” illustrates a user response; the panel does not grant permissions.</sub>
+
+[![Build](https://github.com/YidaHao/SessionGlow/actions/workflows/ci.yml/badge.svg)](https://github.com/YidaHao/SessionGlow/actions/workflows/ci.yml)
+[![MIT](https://img.shields.io/badge/license-MIT-8B5CF6)](LICENSE)
+[![Linux](https://img.shields.io/badge/platform-Linux-E95420)](#compatibility)
+[![Latest release](https://img.shields.io/github/v/release/YidaHao/SessionGlow)](https://github.com/YidaHao/SessionGlow/releases/latest)
+
+[Download v0.1.0](https://github.com/YidaHao/SessionGlow/releases/tag/v0.1.0) · [24 fps demo](docs/assets/sessionglow-demo.webm) · [Installation](docs/INSTALL.md) · [Usage](docs/USAGE.md)
 
 </div>
 
----
+## Why SessionGlow?
 
-## 动效预览
+When several agents run in parallel, checking every terminal for completion or a permission prompt becomes another task. SessionGlow keeps a small status light for each main session in a movable, always-on-top panel.
 
-<p align="center">
-  <img src="docs/assets/sessionglow-demo.gif" width="420" alt="SessionGlow 动效：蓝色交叉电流、红色静止电流、绿色流动液体、黄色抖动电流；第五根灯管循环切换状态" />
-</p>
+- **Event-driven:** task, failure, permission and question events supply the state. There is no CPU polling or terminal-output guessing.
+- **One light, one session:** subagent activity and attention requests roll up into their parent session.
+- **Local by design:** the plugin talks to the panel over localhost, sending a small session summary.
 
-<p align="center">
-  <sub>实际程序渲染 · 合成演示会话 · 第五根灯管每 5 秒切换状态</sub><br />
-  <a href="docs/assets/sessionglow-demo.webm">查看 24 fps 高清动效</a>
-</p>
+All animation stays inside the panel. Create tasks and answer permissions in OpenCode or OpenChamber.
 
-### 四种颜色，四种节奏
+## What the lights mean
 
-| 状态 | 灯管里的变化 | 你需要知道的事 |
-| :--- | :--- | :--- |
-| 🔵 **进行中** | 五股电流舒缓交错，细小粒子沿电流和空腔自由漂浮 | Agent 正在工作，或正在自动重试 |
-| 🔴 **任务失败** | 电流逐渐收成直线，粒子停住，只留下轻微抖动 | 任务已终止，需要查看失败原因 |
-| 🟢 **已完成** | 电流和粒子渐隐，绿色液体充满灯管并缓慢流动 | 这一轮任务已经结束 |
-| 🟡 **待确认** | 保持饱满的电流波幅，叠加更明显、不规则的抖动 | 有授权请求或问题需要你回应 |
+| State | Animation | Meaning |
+| --- | --- | --- |
+| 🔵 Working | Five gently interweaving currents with drifting particles | Working or automatically retrying |
+| 🟡 Needs you | Full waveforms with more irregular jitter | Waiting for permission or an answer |
+| 🟢 Done | Slowly flowing green liquid; no electricity or particles | The task has finished |
+| 🔴 Failed | A nearly straight, slightly trembling current; particles stop | Terminal failure or cancellation |
 
-每次切换经过约 **0.8 秒的平滑过渡**。颜色、波幅、粒子运动和液体填充一起变化；连续收到新状态时，动画从当前画面继续。
+Transitions take about **0.8 seconds** and continue from the current frame when interrupted. Gray means no reliable result is available. Disconnection preserves and dims the last state; it is not treated as completion.
 
-## 放在角落，也能看清进展
+## Quick start
 
-| | |
-| :--- | :--- |
-| **一根灯管，一个主会话**<br />子 Agent 的活动归入主会话，等待确认也会一起提示。 | **最近任务，稳定排列**<br />默认显示 5 个，可配置为 1–12 个；工具调用和心跳不打乱顺序。 |
-| **终端与 OpenChamber 都能接入**<br />汇总本机已加载插件的多个 OpenCode 服务和项目。 | **可拖动的悬浮面板**<br />支持置顶、位置记忆、隐藏到托盘，以及透明度、帧率和动效强度调节。 |
-| **真实事件驱动**<br />直接响应任务、失败、权限和提问事件，不以 CPU 占用推测任务状态。 | **轻量的本地记录**<br />保留近期会话摘要；断线时标明连接中断，重新打开后自动恢复连接。 |
+### Ubuntu package — recommended
 
-所有光效都限制在面板内部。授权和回答仍在 OpenCode / OpenChamber 中完成。
-
-## 快速开始
-
-当前主要适配 **Ubuntu 22.04.5 + GNOME 42.9 + X11**，已在 **OpenCode 1.18.31** 上验证。其他桌面环境、Wayland 置顶策略与混合 DPI 尚未验证。
-
-### 1. 获取并安装
+Download [`sessionglow_0.1.0_amd64.deb`](https://github.com/YidaHao/SessionGlow/releases/download/v0.1.0/sessionglow_0.1.0_amd64.deb) from the release, then:
 
 ```bash
-git clone https://github.com/YidaHao/SessionGlow.git
-cd SessionGlow
-
-sudo apt install python3-pyqt5
-/usr/bin/python3 install.py
+sudo apt install ./sessionglow_0.1.0_amd64.deb
+sessionglow
 ```
 
-安装器为当前用户添加 OpenCode 插件和 Ubuntu 应用菜单入口，保留已有 `opencode.json`。启动器使用系统 Python，无需创建虚拟环境。
+Or open **SessionGlow** from your applications menu. A normal first launch registers the OpenCode plugin for the current user. **Restart the OpenCode process you actually use** to load it, then start a task. The panel and detailed usage guide currently use Chinese labels; this README covers the essentials in English.
 
-### 2. 打开面板
+| Your setup | Restart after plugin installation or upgrade |
+| --- | --- |
+| OpenCode terminal | Exit, then run `opencode -c` in your project directory |
+| Standalone `opencode serve` | Wait for tasks to finish and restart the same service with its original arguments and credentials |
+| OpenChamber managed backend | Wait for tasks to finish, then `openchamber restart --port 3000` (your web UI port) |
+| OpenChamber with an external server | Restart the external OpenCode service; a browser refresh cannot reload its plugin |
+
+OpenChamber may use a dynamic backend port rather than 4096. See [installation and integration](docs/INSTALL.md) for authentication and connection details. AppImage is planned, not shipped in v0.1.0.
+
+Preview without connecting an agent:
 
 ```bash
-./run.sh
+sessionglow --demo
 ```
 
-也可以在应用菜单搜索 **SessionGlow**。
-
-想先看看全部动效？
+### Upgrade and uninstall
 
 ```bash
-./run.sh --demo
+# Close the panel, install the newer package, then reopen it and restart OpenCode.
+sudo apt install ./sessionglow_X.Y.Z_amd64.deb
+
+# Remove your plugin entry before removing the package.
+sessionglow --uninstall-plugin
+sudo apt remove sessionglow
 ```
 
-演示模式不依赖 OpenCode，会同时展示四种状态和连续切换效果。
+Restart OpenCode after removal. Settings and history remain in your home directory. If you remove the package first, its managed user plugin becomes inert; remove `~/.config/opencode/plugins/sessionglow.js` manually. No package script edits other users' home directories. [Complete lifecycle instructions](docs/INSTALL.md).
 
-### 3. 重启实际使用的 OpenCode
+## Core features
 
-插件在 OpenCode 启动时加载。安装后，退出并重新打开你使用的终端或服务。
+- **Recent tasks in a stable order:** show 5 main sessions by default, configurable from 1 to 12. Tool events and heartbeats do not reorder them.
+- **A compact desktop panel:** drag the title bar, toggle always-on-top, hide to the tray, and remember the window position.
+- **Adjustable effects:** change frame rate, opacity and intensity. Hidden panels stop rendering.
+- **Multiple local instances:** aggregate terminal, standalone server and OpenChamber sessions that load the plugin.
+- **Reconnect and restore:** keep bounded local summaries and recover via heartbeats. Completed and failed sessions remain visible until displaced by more recent tasks.
 
-| 你的使用方式 | 接入方法 |
-| :--- | :--- |
-| 直接在终端使用 OpenCode | 在原项目目录执行 `opencode -c`，继续最近的会话 |
-| 独立 `opencode serve` 服务 | 等待任务结束，按原端口和认证配置重新启动该服务 |
-| OpenChamber 自动管理后台 | 等待任务结束，运行 `openchamber restart --port 3000`；替换为实际网页端口 |
-| OpenChamber 连接外部 OpenCode | 重启对应的外部 OpenCode 服务；刷新网页不会重载服务插件 |
+## Event-driven architecture
 
-**OpenChamber 的后台不一定是 4096。** 它可能自动启动一个动态端口的服务。完整步骤见 [安装与接入指南](docs/INSTALL.md)。
+OpenCode's plugin handles task and attention events, then posts bounded session snapshots to the panel at `127.0.0.1:8790`. A standard-library HTTP server queues updates for the Qt thread; the session model aggregates children, orders rows and stores recent summaries. The renderer interpolates animation parameters without resetting particle positions.
 
-连接后，在 OpenCode 发起一个任务，相应灯管就会亮起。
+Heartbeats run every 5 seconds; missing updates for about 20 seconds mark a source disconnected. History restoration is bounded and runs independently of live events. A closed panel does not block agent tools.
 
-## 日常使用
+## Main and subagent aggregation
 
-- **拖动标题栏**移动面板，位置会自动保存。
-- **隐藏面板**：点击右上角的 `−`，后台继续接收状态。
-- **打开菜单**：点击右上角的 `···`，调整会话数量、置顶和外观。
-- **托盘菜单 → 退出 SessionGlow**关闭程序，不中断 Agent 任务。
+Only main sessions get rows. A child's permission or question can turn its parent's light yellow; a child's completion cannot turn a still-running parent green. Recoverable child/tool errors do not automatically fail the main task. The main task's terminal error survives subsequent idle events.
 
-完成或失败的会话会留在列表中；旧会话被更新的任务挤出后，可增大显示数量。灰色表示尚无可靠结果；连接丢失会标明“连接中断 · 上次状态”，不会伪装成任务完成。
+Ordering uses the most recent task start. Merely browsing an older conversation does not move it to the top. Hover a row to see its full title, project and session ID.
 
-<details>
-<summary><strong>配置文件与常用选项</strong></summary>
+## Compatibility
 
-外观设置可在菜单中直接修改，也可编辑 `~/.config/sessionglow/config.json`：
+| Platform | Status |
+| --- | --- |
+| Ubuntu 22.04.5 / GNOME 42.9 / X11 / amd64 | ✅ Tested desktop target for v0.1.0 |
+| Ubuntu 24.04 / GNOME / Wayland | ⚠️ Untested; validation planned |
+| KDE Plasma | ⚠️ Untested |
+| Mixed-DPI displays | ⚠️ Untested |
+| macOS | ❌ Not supported in this release |
+| Windows | ❌ Not supported in this release |
+
+| Integration | Status |
+| --- | --- |
+| OpenCode terminal | ✅ Tested with 1.18.31 |
+| `opencode serve` | ✅ Tested with 1.18.31, including authentication |
+| OpenChamber | ✅ Tested with managed and external OpenCode servers |
+
+Offscreen package tests do not imply Wayland compatibility. Python and PyQt5 are system dependencies; only the project's own code is covered by MIT.
+
+## Privacy
+
+SessionGlow communicates over localhost. **Prompt bodies, model responses, tool arguments and service credentials are not sent to the panel.** Snapshots contain session titles, IDs, parent relationships, project paths, states, timestamps and source diagnostics. A title can itself contain text chosen by you or OpenCode.
+
+At initialization, the plugin queries a limited amount of recent OpenCode history and uses its message metadata to restore state. The panel stores at most 512 summaries in `~/.local/state/sessionglow/sessions.json`. There is no telemetry or automatic startup at login.
+
+## Configuration
+
+Use the tray/menu to set the session count, always-on-top and appearance. Configuration is stored at `~/.config/sessionglow/config.json`:
 
 ```json
 {
@@ -134,65 +149,42 @@ sudo apt install python3-pyqt5
 }
 ```
 
-手工编辑配置后重新打开面板。降低帧率可以减少绘制负载，降低动效强度可以减少画面干扰；隐藏时停止绘图。
-
-```bash
-# 使用指定配置
-./run.sh --config /path/to/config.json
-
-# 演示 15 秒后退出
-./run.sh --demo --quit-after 15
-
-# 导出合成预览图
-./run.sh --render /tmp/sessionglow.png
-```
-
-</details>
+Restart the panel after manually editing this file. If the receiving port changes, also set `SESSIONGLOW_PORT` in OpenCode's startup environment.
 
 <details>
-<summary><strong>连上了吗？查看实际服务来源</strong></summary>
+<summary>Diagnostics and useful commands</summary>
 
 ```bash
+sessionglow --version
+sessionglow --install-plugin
+sessionglow --demo --quit-after 15
+sessionglow --render /tmp/sessionglow.png
 curl -s http://127.0.0.1:8790/health | /usr/bin/python3 -m json.tool
 ```
 
-`sources` 显示实际 OpenCode 服务地址、PID 和项目目录，`sessions` 显示面板上的会话。一个服务可初始化多个项目，因此 `connections` 不等于服务数或会话数。
-
-如果终端会话可见，而 OpenChamber 会话不可见，先核对后台端口和插件加载位置，再看 [连接问题排查](docs/USAGE.md#排查终端会话可见openchamber-会话不可见)。
+`sources` identifies the actual OpenCode endpoint, PID and project. `connections` counts project plugin instances, not servers. If only terminal sessions appear, verify the OpenChamber backend and restart the correct process.
 
 </details>
 
-## 本地接入，按需运行
+## Development and contributing
 
-插件通过本机 `127.0.0.1:8790` 发送会话标题、目录、状态和时间等元数据。**不会向面板传输提示词正文、回答正文、工具参数或服务密码。** 首次启动会通过 OpenCode API 回填有限的近期历史，用于恢复会话摘要；实时任务不等待历史加载。
-
-会话摘要保存在 `~/.local/state/sessionglow/sessions.json`。面板关闭时不会阻塞 OpenCode，重新打开后通过心跳恢复；默认不设置开机自启。
-
-## 文档与开发
-
-| 文档 | 内容 |
-| :--- | :--- |
-| [安装与接入](docs/INSTALL.md) | 安装、升级、卸载、终端与服务接入、OpenChamber 两种模式 |
-| [使用与排查](docs/USAGE.md) | 灯管状态、会话排序、外观设置、连接诊断 |
-| [动效素材生成](docs/assets/README.md) | 首页 GIF 与高清演示的生成方式 |
-
-运行自动测试：
+Source installation:
 
 ```bash
-/usr/bin/python3 -m unittest discover -s tests -p 'test_*.py' -v
-node --test tests/plugin.test.mjs
+git clone https://github.com/YidaHao/SessionGlow.git
+cd SessionGlow
+sudo apt install python3-pyqt5
+/usr/bin/python3 install.py
+./run.sh
 ```
 
-安装插件并启动面板后，可验证真实 OpenCode 多会话行为：
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, package builds, event debugging and platform validation. The [roadmap](https://github.com/YidaHao/SessionGlow/issues?q=is%3Aissue+label%3A%22help+wanted%22) tracks planned compatibility and packaging work.
 
-```bash
-/usr/bin/python3 tests/live_opencode.py
-```
+| Documentation | Contents |
+| --- | --- |
+| [Installation](docs/INSTALL.md) | Packages, source setup, upgrades, removal and OpenChamber |
+| [Usage (中文)](docs/USAGE.md) | Controls, ordering, appearance and troubleshooting |
+| [Media](docs/assets/README.md) | Reproduce the short demo and Social Preview |
+| [v0.1.0 release notes](docs/releases/v0.1.0.md) | Scope, compatibility and known limits |
 
-它通过临时会话和本地短命令检查主子会话归属、排序及状态变化，不请求模型。桌面交互测试和更多命令见 [使用文档](docs/USAGE.md) 与 [测试目录](tests/)。
-
----
-
-<p align="center">
-  <sub>一眼看见进展，然后继续手头的事。</sub>
-</p>
+[MIT License](LICENSE) · Copyright © 2026 YidaHao

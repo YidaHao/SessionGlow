@@ -1,0 +1,88 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pyqt5 pyflakes3 desktop-file-utils fonts-noto-cjk
+      - name: Python tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: /usr/bin/python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: OpenCode plugin tests
+        run: node --test tests/plugin.test.mjs
+      - name: Lint and desktop entry
+        run: |
+          /usr/bin/python3 -m pyflakes sessionglow tests scripts install.py
+          node --check plugin/sessionglow.mjs
+          bash -n run.sh scripts/smoke_deb.sh
+          sh -n packaging/sessionglow
+          desktop-file-validate packaging/sessionglow.desktop
+          git diff --check
+      - name: Build Debian package
+        run: /usr/bin/python3 scripts/build_deb.py
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          /usr/bin/python3 -c 'import os; from sessionglow import __version__; assert os.environ["RELEASE_TAG"] == "v" + __version__'
+      - name: Install, upgrade and uninstall in Ubuntu 22.04
+        run: |
+          docker run --rm -v "$PWD:/src:ro" ubuntu:22.04 bash -c \
+            'apt-get update && bash /src/scripts/smoke_deb.sh /src/dist/sessionglow_*_amd64.deb'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sessionglow-deb
+          path: |
+            dist/*.deb
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'YidaHao/SessionGlow'
+    needs: verify
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: sessionglow-deb
+          path: dist
+      - name: Publish tested release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/*.deb dist/SHA256SUMS --clobber
+          else
+            gh release create "$RELEASE_TAG" dist/*.deb dist/SHA256SUMS \
+              --verify-tag --title "$RELEASE_TAG — Ubuntu / GNOME / X11" \
+              --notes-file "docs/releases/$RELEASE_TAG.md"
+          fi
+      - name: Publish initial roadmap
+        if: github.ref_name == 'v0.1.0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: /usr/bin/python3 scripts/publish_roadmap.py
